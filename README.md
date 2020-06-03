@@ -1,68 +1,107 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Bloggy
+======
 
-## Available Scripts
+Um microblog no estilo React de ser! 
 
-In the project directory, you can run:
+### Falando um pouco sobre React.js
 
-### `yarn start`
+Como muitos já sabem, o react é uma ferramenta que permite criar UI
+completas para suas aplicações. Nesse projeto foi possível utliizar
+vários conceitos como os Hooks, styled-compenents, react-router-dom e
+suas várias funcionalidades.
 
-Runs the app in the development mode.<br />
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+### Considerações e Melhorias
 
-The page will reload if you make edits.<br />
-You will also see any lint errors in the console.
+Massss,\
+ Ainda é possível mehorar bastante coisa. A utilização de um gerenciador
+de estado como Redux ou até mesmo a própria context API do React que
+traz soluções incríveis para esse problemas.
 
-### `yarn test`
+### Controle de Autenticação nas rotas
 
-Launches the test runner in the interactive watch mode.<br />
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Neste Projeto Utilizei uma estratégia bem conehcida de controle de
+autenticação nas rotas. É o que chamamos de PrivateRoute. Abaixo segue a
+explicação sobre este método de implementar autenticação nas rotas.
 
-### `yarn build`
-
-Builds the app for production to the `build` folder.<br />
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.<br />
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `yarn eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
-
-### Analyzing the Bundle Size
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
-
-### Making a Progressive Web App
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
-
-### Advanced Configuration
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
-
-### Deployment
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
-
-### `yarn build` fails to minify
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+>             No arquivo routes.js
+>             
+>
+>
+>               import React from "react";
+>               import { BrowserRouter, Route, Switch, Redirect } from "react-router-dom";
+>               
+>               import { isAuthenticated } from "./services/auth";
+>               
+>               import SignUp from './pages/SignUp';
+>               import SignIn from './pages/SignIn';
+>               import BlogPage from './pages/Blog';
+>               
+>               const PrivateRoute = ({ component: Component, ...rest }) => (
+>                 < Route
+>                   {...rest}
+>                   render={props =>
+>                     isAuthenticated() ? (
+>                         < Component {...props} />
+>                       ) : 
+>                       (
+>                         < Redirect to={{ pathname: "/signin", state: { from: props.location } }} />
+>                     )
+>                   }
+>                 />
+>               );
+>               
+>               const Routes = () => (
+>                 < BrowserRouter >
+>                   < Switch >
+>                     < Route exact path="/signup" component={SignUp} />
+>                     < Route exact path="/signin" component={SignIn} />
+>                     < PrivateRoute path="/app" component={BlogPage} />
+>                     < Route path="*" component={() => Page not found} />
+>                   
+>                 
+>               );
+>               
+>               export default Routes;    
+>             
+>             
+>               No trecho de código acima, a estratégia consiste em criar um Component PrivateRoute que
+>               retorna uma Route(do react-router-dom). Através de uma operação ternária ele confirma se
+>               o usuário está autenticado e caso não esteja ele será direcionado ao login. Essa é a forma
+>               mais simples de controle de rotas que o usuário pode acessar com react.
+>             
+>           
+>
+>             No arquivo auth.js
+>             
+>               export const TOKEN_KEY = "@microblog-Token";
+>               export const isAuthenticated = () => localStorage.getItem(TOKEN_KEY) !== null;
+>               export const getToken = () => localStorage.getItem(TOKEN_KEY);
+>               export const login = token => {
+>                 localStorage.setItem(TOKEN_KEY, token);
+>               };
+>               export const logout = () => {
+>                 localStorage.removeItem(TOKEN_KEY);
+>               };
+>             
+>           
+>
+>             No arquivo api.js
+>             
+>               import axios from "axios";
+>               import { getToken } from "./auth";
+>               
+>               const api = axios.create({
+>                 baseURL: "http://localhost:3333"
+>               });
+>               
+>               api.interceptors.request.use(async config => {
+>                 const token = getToken();
+>                 if (token) {
+>                   config.headers.Authorization = `Bearer ${token}`;
+>                 }
+>                 return config;
+>               });
+>               
+>               export default api;
+>             
+>           
